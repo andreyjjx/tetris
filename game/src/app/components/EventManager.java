@@ -1,12 +1,13 @@
-package components;
+package app.components;
 
-/**
- * Created by andreyd on 28.11.2016.
- */
-public interface EventManager {
+interface EventManager {
     void turnFigureLeft();
+
     void turnFigureRight();
+
     void figureColorsUp();
+
     void figureColorsDown();
+
     void dropFigure();
 }
