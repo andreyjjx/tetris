@@ -1,3 +1,5 @@
+package components;
+
 /**
  * Created by andreyd on 27.11.2016.
  */
@@ -58,9 +60,9 @@ public class Field {
                     n--;
                 }
             }
-            ;
             for (j = n; j > 0; j--)
                 this.newState[i][j] = 0;
         }
     }
+
 }

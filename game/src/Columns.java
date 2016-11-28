@@ -1,43 +1,19 @@
+import components.Figure;
+import graphics.Marker;
+
 import java.applet.*;
 import java.awt.*;
-import java.util.*;
 
 
 public class Columns extends Applet implements Runnable {
-    static final int
-            MaxLevel = 7,
-            TimeShift = 250,
-            FigToDrop = 33,
-            MinTimeShift = 200;
 
-    int Level, i, j, k, ch;
-    long Score, DScore, tc;
-    Figure Fig;
-    boolean NoChanges = true, KeyPressed = false;
+    int ch;
+    long tc;
+    boolean KeyPressed = false;
     Graphics _gr;
-
     Thread thr = null;
-    Field field = new Field(7, 15);
-    DrawMarker dMarker;
-
-    void CheckNeighbours(int a, int b, int c, int d, int i, int j) {
-        if (field.getNewState(j, i) == field.getNewState(a, b) &&
-                field.getNewState(j, i) == field.getNewState(c, d)) {
-
-            field.setOldState(a, b, 0);
-            dMarker.DrawBox(a, b, 8);
-
-            field.setOldState(j, i, 0);
-            dMarker.DrawBox(j, i, 8);
-
-            field.setOldState(c, d, 0);
-            dMarker.DrawBox(c, d, 8);
-
-            NoChanges = false;
-            Score += (Level + 1) * 10;
-            k++;
-        }
-    }
+    Marker dMarker;
+    Game game;
 
     void Delay(long t) {
         try {
@@ -47,10 +23,10 @@ public class Columns extends Applet implements Runnable {
     }
 
     public void init() {
-        /*Fnew = new int[field.getWidth() + 2][field.getDepth() + 2];
-        Fold = new int[field.getWidth() + 2][field.getDepth() + 2];*/
         _gr = getGraphics();
-        dMarker = new DrawMarker(_gr);
+        _gr.setColor(Color.black);
+        dMarker = new Marker(_gr);
+        game = new Game(dMarker);
     }
 
     public boolean keyDown(Event e, int k) {
@@ -66,118 +42,81 @@ public class Columns extends Applet implements Runnable {
     }
 
     public void paint(Graphics g) {
-        //		ShowHelp(g);
+        //		showHelp(g);
 
         g.setColor(Color.black);
 
-        dMarker.ShowLevel(Level);
-        dMarker.ShowScore(Score);
-        dMarker.DrawField(field);
-        dMarker.DrawFigure(Fig);
+        dMarker.showLevel(game.getLevel());
+        dMarker.showScore(game.getScore());
+        dMarker.drawField(game.getField());
+        dMarker.drawFigure(game.getFig());
         requestFocus();
     }
 
     public void run() {
-        Level = 0;
-        Score = 0;
-        j = 0;
-        k = 0;
-        _gr.setColor(Color.black);
         requestFocus();
 
         do {
             tc = System.currentTimeMillis();
-            new Figure(field.getWidth());
-            dMarker.DrawFigure(Fig);
-            while ((Fig.y < field.getDepth() - 2) && (field.getNewState(Fig.x, Fig.y + 3) == 0)) {
-                if ((int) (System.currentTimeMillis() - tc) > (MaxLevel - Level) * TimeShift + MinTimeShift) {
+            game.getFig().reset();
+            dMarker.drawFigure(game.getFig());
+            while (game.getFig().canMoveDown()) {
+                if ((int) (System.currentTimeMillis() - tc) > (Game.MAX_LEVEL - Game.MAX_LEVEL) * Game.TIME_SHIFT + Game.MIN_TIME_SHIFT) {
                     tc = System.currentTimeMillis();
-                    dMarker.HideFigure(Fig);
-                    Fig.y++;
-                    dMarker.DrawFigure(Fig);
+                    dMarker.hideFigure(game.getFig());
+                    game.getFig().y++;
+                    dMarker.drawFigure(game.getFig());
                 }
-                DScore = 0;
+                game.setdScore(0);
                 do {
                     Delay(50);
                     if (KeyPressed) {
                         KeyPressed = false;
                         switch (ch) {
                             case Event.LEFT:
-                                if ((Fig.x > 1) && (field.getNewState(Fig.x - 1, Fig.y + 2) == 0)) {
-                                    dMarker.HideFigure(Fig);
-                                    Fig.x--;
-                                    dMarker.DrawFigure(Fig);
-                                }
+                                game.turnFigureLeft();
                                 break;
                             case Event.RIGHT:
-                                if ((Fig.x < field.getWidth()) && (field.getNewState(Fig.x + 1, Fig.y + 2) == 0)) {
-                                    dMarker.HideFigure(Fig);
-                                    Fig.x++;
-                                    dMarker.DrawFigure(Fig);
-                                }
+                                game.turnFigureRight();
                                 break;
                             case Event.UP:
-                                i = Fig.c[1];
-                                Fig.c[1] = Fig.c[2];
-                                Fig.c[2] = Fig.c[3];
-                                Fig.c[3] = i;
-                                dMarker.DrawFigure(Fig);
+                                game.figureColorsUp();
                                 break;
                             case Event.DOWN:
-                                i = Fig.c[1];
-                                Fig.c[1] = Fig.c[3];
-                                Fig.c[3] = Fig.c[2];
-                                Fig.c[2] = i;
-                                dMarker.DrawFigure(Fig);
+                                game.figureColorsDown();
                                 break;
                             case ' ':
-                                dMarker.HideFigure(Fig);
-                                DScore = dMarker.DropFigure(Fig,field,Level,DScore);
-                                dMarker.DrawFigure(Fig);
-                                //tc = 0;
+                                game.dropFigure();
                                 break;
                             case 'P':
                             case 'p':
                                 while (!KeyPressed) {
-                                    dMarker.HideFigure(Fig);
+                                    dMarker.hideFigure(game.getFig());
                                     Delay(500);
-                                    dMarker.DrawFigure(Fig);
+                                    dMarker.drawFigure(game.getFig());
                                     Delay(500);
                                 }
                                 tc = System.currentTimeMillis();
                                 break;
                             case '-':
-                                if (Level > 0) Level--;
-                                k = 0;
-                                dMarker.ShowLevel(Level);
+                                game.levelDown();
+                                game.setNeighboursCounter(0);
+                                dMarker.showLevel(game.getLevel());
                                 break;
                             case '+':
-                                if (Level < MaxLevel) Level++;
-                                k = 0;
-                                dMarker.ShowLevel(Level);
+                                game.levelUp();
+                                game.setNeighboursCounter(0);
+                                dMarker.showLevel(game.getLevel());
                                 break;
                         }
                     }
-                } while ((int) (System.currentTimeMillis() - tc) <= (MaxLevel - Level) * TimeShift + MinTimeShift);
-            }
-            dMarker.PasteFigure(Fig,field);
-            do {
-                NoChanges = true;
-                TestField();
-                if (!NoChanges) {
-                    Delay(500);
-                    field.pack();
-                    dMarker.DrawField(field);
-                    Score += DScore;
-                    dMarker.ShowScore(Score);
-                    if (k >= FigToDrop) {
-                        k = 0;
-                        if (Level < MaxLevel) Level++;
-                        dMarker.ShowLevel(Level);
-                    }
                 }
-            } while (!NoChanges);
-        } while (!field.ifFull());
+                while ((int) (System.currentTimeMillis() - tc) <= (Game.MAX_LEVEL - Game.MAX_LEVEL) * Game.TIME_SHIFT + Game.MIN_TIME_SHIFT);
+            }
+            game.getFig().paste();
+            Delay(500);
+            game.someWaits();
+        } while (!game.getField().ifFull());
     }
 
     public void start() {
@@ -195,25 +134,6 @@ public class Columns extends Applet implements Runnable {
         if (thr != null) {
             thr.stop();
             thr = null;
-        }
-    }
-
-    void TestField() {
-        int i, j;
-        for (i = 1; i <= field.getDepth(); i++) {
-            for (j = 1; j <= field.getWidth(); j++) {
-                field.setOldState(j, i, field.getNewState(j, i));
-            }
-        }
-        for (i = 1; i <= field.getDepth(); i++) {
-            for (j = 1; j <= field.getWidth(); j++) {
-                if (field.getNewState(j, i) > 0) {
-                    CheckNeighbours(j, i - 1, j, i + 1, i, j);
-                    CheckNeighbours(j - 1, i, j + 1, i, i, j);
-                    CheckNeighbours(j - 1, i - 1, j + 1, i + 1, i, j);
-                    CheckNeighbours(j + 1, i - 1, j - 1, i + 1, i, j);
-                }
-            }
         }
     }
 }

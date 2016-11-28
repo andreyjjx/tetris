@@ -1,9 +1,14 @@
+package graphics;
+
+import components.Field;
+import components.Figure;
+
 import java.awt.*;
 
 /**
  * Created by andreyd on 27.11.2016.
  */
-public class DrawMarker {
+public class Marker {
     private int SL = 25, LeftBorder = 2,
             TopBorder = 2;
     private Color MyStyles[] = {Color.black, Color.cyan, Color.blue, Color.red, Color.green,
@@ -11,11 +16,11 @@ public class DrawMarker {
 
     private Graphics graphEngine;
 
-    public DrawMarker(Graphics graphEngine) {
+    public Marker(Graphics graphEngine) {
         this.graphEngine = graphEngine;
     }
 
-    void DrawBox(int x, int y, int c) {
+    public void drawBox(int x, int y, int c) {
         if (c == 0) {
             graphEngine.setColor(Color.black);
             graphEngine.fillRect(LeftBorder + x * SL - SL, TopBorder + y * SL - SL, SL, SL);
@@ -35,67 +40,51 @@ public class DrawMarker {
         //		graphEngine.setColor (Color.black);
     }
 
-    void DrawField(Field field) {
+    public void drawField(Field field) {
         int i, j;
         for (i = 1; i <= field.getDepth(); i++) {
             for (j = 1; j <= field.getWidth(); j++) {
-                DrawBox(j, i, field.getNewState(j, i));
+                drawBox(j, i, field.getNewState(j, i));
             }
         }
     }
 
-    void DrawFigure(Figure f) {
-        DrawBox(f.x, f.y, f.c[1]);
-        DrawBox(f.x, f.y + 1, f.c[2]);
-        DrawBox(f.x, f.y + 2, f.c[3]);
+    public void drawFigure(Figure f) {
+        drawBox(f.x, f.y, f.colors[1]);
+        drawBox(f.x, f.y + 1, f.colors[2]);
+        drawBox(f.x, f.y + 2, f.colors[3]);
     }
 
-    long  DropFigure(Figure f, Field field, int level, long dscore) {
-        int zz;
-        if (f.y < field.getDepth() - 2) {
-            zz = field.getDepth();
-            while (field.getNewState(f.x, zz) > 0) zz--;
-            dscore = (((level + 1) * (field.getDepth() * 2 - f.y - zz) * 2) % 5) * 5;
-            f.y = zz - 2;
-        }
-        return dscore;
+
+    public void hideFigure(Figure f) {
+        drawBox(f.x, f.y, 0);
+        drawBox(f.x, f.y + 1, 0);
+        drawBox(f.x, f.y + 2, 0);
     }
 
-    void HideFigure(Figure f) {
-        DrawBox(f.x, f.y, 0);
-        DrawBox(f.x, f.y + 1, 0);
-        DrawBox(f.x, f.y + 2, 0);
-    }
-
-    void ShowHelp() {
+    public void showHelp() {
         graphEngine.setColor(Color.black);
         graphEngine.drawString(" Keys available:", 200 - LeftBorder, 102);
         graphEngine.drawString("Roll Box Up:     ", 200 - LeftBorder, 118);
         graphEngine.drawString("Roll Box Down:   ", 200 - LeftBorder, 128);
-        graphEngine.drawString("Figure Left:     ", 200 - LeftBorder, 138);
-        graphEngine.drawString("Figure Right:    ", 200 - LeftBorder, 148);
+        graphEngine.drawString("components.Figure Left:     ", 200 - LeftBorder, 138);
+        graphEngine.drawString("components.Figure Right:    ", 200 - LeftBorder, 148);
         graphEngine.drawString("Level High/Low: +/-", 200 - LeftBorder, 158);
-        graphEngine.drawString("Drop Figure:   space", 200 - LeftBorder, 168);
+        graphEngine.drawString("Drop components.Figure:   space", 200 - LeftBorder, 168);
         graphEngine.drawString("Pause:           P", 200 - LeftBorder, 180);
         graphEngine.drawString("Quit:     Esc or Q", 200 - LeftBorder, 190);
     }
 
-    void ShowLevel(int level) {
+    public void showLevel(int level) {
         graphEngine.setColor(Color.black);
         graphEngine.clearRect(LeftBorder + 100, 390, 100, 20);
         graphEngine.drawString("Level: " + level, LeftBorder + 100, 400);
     }
 
-    void ShowScore(long score) {
+    public void showScore(long score) {
         graphEngine.setColor(Color.black);
         graphEngine.clearRect(LeftBorder, 390, 100, 20);
         graphEngine.drawString("Score: " + score, LeftBorder, 400);
-    }
-
-    void PasteFigure(Figure f, Field field) {
-        field.setNewState(f.x, f.y, f.c[1]);
-        field.setNewState(f.x, f.y + 1, f.c[2]);
-        field.setNewState(f.x, f.y + 2, f.c[3]);
     }
 
 }

@@ -3,7 +3,7 @@
  */
 public class Main {
     public static void main(String[] args) {
-       /* Field field = new Field(GameParameters.field.SMALL);
+       /* components.Field field = new components.Field(GameParameters.field.SMALL);
         Game game = new Game(field, GameParameters.level.LIGHT);
         Application app = new Application(game);
         app.run();*/
